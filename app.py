@@ -19,8 +19,6 @@ def get_config(key, default=None):
     # Then try environment variables (for local development)
     return os.getenv(key, default)
 
-st.set_page_config(page_title="PDF OCR with Claude", layout="wide")
-
 def check_password():
     """Returns `True` if the user had the correct password."""
     
@@ -83,7 +81,7 @@ def encode_image(image):
 
 def extract_text_with_claude(image, api_key, filename="", structured_format=None):
     """Use Claude to extract text from image"""
-    client = anthropic.Anthropic(api_key=api_key)
+    client = anthropic.Anthropic(api_key=api_key, timeout=30.0)
     
     base64_image = encode_image(image)
     
@@ -147,6 +145,7 @@ Return the extracted content in a consistent, structured format that can be easi
         return f"Error processing image: {str(e)}"
 
 def main():
+    st.set_page_config(page_title="PDF OCR with Claude", layout="wide")
     st.title("📄 Bulk PDF OCR with Claude")
     
     if not check_password():
@@ -264,4 +263,8 @@ Note: Users circle numbers on rating scales, not mark with X""",
                     st.text_area("Full text", full_text.replace("...", ""), height=400, key=f"full_{idx}")
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception as e:
+        st.error(f"Application error: {str(e)}")
+        st.exception(e)
