@@ -8,7 +8,16 @@ from PIL import Image
 import os
 from dotenv import load_dotenv
 
+# Load environment variables for local development
 load_dotenv()
+
+# Helper function to get config values
+def get_config(key, default=None):
+    # First try Streamlit secrets (for deployment)
+    if hasattr(st, 'secrets') and key in st.secrets:
+        return st.secrets[key]
+    # Then try environment variables (for local development)
+    return os.getenv(key, default)
 
 st.set_page_config(page_title="PDF OCR with Claude", layout="wide")
 
@@ -18,8 +27,8 @@ def check_password():
     def password_entered():
         """Checks whether a password entered by the user is correct."""
         if (
-            st.session_state["username"] == os.getenv("AUTH_EMAIL", "admin@example.com")
-            and st.session_state["password"] == os.getenv("AUTH_PASSWORD", "admin123")
+            st.session_state["username"] == get_config("AUTH_EMAIL", "admin@example.com")
+            and st.session_state["password"] == get_config("AUTH_PASSWORD", "admin123")
         ):
             st.session_state["password_correct"] = True
             del st.session_state["password"]
@@ -145,7 +154,7 @@ def main():
     
     st.markdown("---")
     
-    api_key = st.text_input("Enter your Anthropic API Key:", type="password", value=os.getenv("ANTHROPIC_API_KEY", ""))
+    api_key = st.text_input("Enter your Anthropic API Key:", type="password", value=get_config("ANTHROPIC_API_KEY", ""))
     
     if not api_key:
         st.warning("Please enter your Anthropic API key to continue")
